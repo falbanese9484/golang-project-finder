@@ -71,7 +71,7 @@ var indexCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		startTime := getCurrentTime()
 		rootPath, err := os.UserHomeDir()
-		projectsPath := filepath.Join(rootPath, "Desktop", "Projects")
+		projectsPath := filepath.Join(rootPath, "Desktop")
 		if err != nil {
 			fmt.Println("Error getting home directory:", err)
 			return
