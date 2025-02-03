@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"sort"
 
+	"project-finder/internal"
+
 	"github.com/lithammer/fuzzysearch/fuzzy"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -58,6 +60,13 @@ var findCmd = &cobra.Command{
 	Use:   "find [query]",
 	Short: "Find and open a project",
 	Run: func(cmd *cobra.Command, args []string) {
+
+		// Check if the config file exists
+		err := internal.CheckConfig()
+		if err != nil {
+			fmt.Println("Config file not found. Please run 'findit config' to set the config")
+			return
+		}
 		if len(args) < 1 {
 			fmt.Println("Please provide a search query")
 			return

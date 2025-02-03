@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"project-finder/internal"
+
 	"github.com/spf13/cobra"
 )
 
@@ -69,6 +71,11 @@ var indexCmd = &cobra.Command{
 	Use:   "index",
 	Short: "Index files in preset Directory - ~/Desktop/Projects",
 	Run: func(cmd *cobra.Command, args []string) {
+		err := internal.CheckConfig()
+		if err != nil {
+			fmt.Println("No config file found. Please run 'findit config' to create one.")
+			return
+		}
 		startTime := getCurrentTime()
 		rootPath, err := os.UserHomeDir()
 		projectsPath := filepath.Join(rootPath, "Desktop")
@@ -87,9 +94,7 @@ var indexCmd = &cobra.Command{
 			return
 		}
 		endTime := getCurrentTime()
-		fmt.Println("Indexing complete in", endTime.Sub(startTime))
-
-		fmt.Println("index called")
+		fmt.Println("Indexing completed in", endTime.Sub(startTime))
 	},
 }
 

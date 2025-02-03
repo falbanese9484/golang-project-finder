@@ -44,6 +44,20 @@ On Select it executes VsCode cli to open or add the project to a new or current 
 
 ### Indexing Projects
 
+The first thing you need to do is set the config.
+For now the CLI only accepts three directories:
+```go
+Items: []string{"Desktop", "Documents", "Downloads"}
+```
+In the future I will expand this to dynamically search through directories to add. I also want to enable the ability to add multiple directories,
+but in theory you should really only have to add one parent directory.
+
+To run the config selection:
+```bash
+findit config
+```
+
+
 To index all projects in the default directory (`~/Desktop/Projects`), run:
 
 ```bash
