@@ -20,7 +20,7 @@ import (
 
 func sortProjects(projects []Project) {
 	sort.Slice(projects, func(i, j int) bool {
-		return projects[i].Name < projects[j].Name
+		return projects[i].Modified.After(projects[j].Modified)
 	})
 }
 
@@ -45,13 +45,11 @@ func readProjects() ([]Project, error) {
 
 func searchProjects(projects []Project, query string) []Project {
 	var matches []Project
-
 	for _, project := range projects {
 		if fuzzy.Match(query, project.Name) {
 			matches = append(matches, project)
 		}
 	}
-
 	return matches
 }
 
@@ -107,13 +105,36 @@ var findCmd = &cobra.Command{
 		}
 
 		selectedProject := matches[index]
-		fmt.Printf("Opening project: %s at %s\n", selectedProject.Name, selectedProject.Path)
+
+		selectEditorPrompt := promptui.Select{
+			Label: "Select an editor",
+			Items: []string{"VS Code", "Neovim...btw"},
+		}
+		editorIndex, _, err := selectEditorPrompt.Run()
+		if err != nil {
+			fmt.Printf("Prompt failed: %v\n", err)
+			return
+		}
+
+		if editorIndex == 0 {
+			openCmd := exec.Command("code", "-a", selectedProject.Path)
+			if err := openCmd.Start(); err != nil {
+				fmt.Printf("Error opening project: %v\n", err)
+			}
+		} else if editorIndex == 1 {
+			openNvimCmd := exec.Command("nvim", selectedProject.Path)
+			fmt.Printf("To open project:\nnvim %s\n", selectedProject.Path)
+			if err := openNvimCmd.Start(); err != nil {
+				fmt.Printf("Error opening project: %v\n", err)
+			}
+		}
+		// fmt.Printf("Opening project: %s at %s\n", selectedProject.Name, selectedProject.Path)
 
 		// Attaches the selected directory to the current VS Code window.
-		openCmd := exec.Command("code", "-a", selectedProject.Path)
-		if err := openCmd.Start(); err != nil {
-			fmt.Printf("Error opening project: %v\n", err)
-		}
+		// openCmd := exec.Command("code", "-a", selectedProject.Path)
+		// if err := openCmd.Start(); err != nil {
+		// 	fmt.Printf("Error opening project: %v\n", err)
+		// }
 	},
 }
 
