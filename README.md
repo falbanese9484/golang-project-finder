@@ -1,22 +1,21 @@
 # Project Finder
 
-So I ended up having a bit of an issue with Project organization on my local machine. Once a folder would get too crowded I would start another Projects folder and append some sort of tag to the end of the previous directory. Example: Projects -> Projects_Q1_24.
-This became hard to navigate, as I needed to remember when I was working on a particular project when it came time to revisit for a feature request or bug fix.
+A CLI tool to fuzzy find projects by directory name and open them in VSCode or tmux.
 
-While learning Go, I decided it would be a cool little side project to create a CLI tool to make my life a little easier. This simple little project takes two arguments, index and find.
+## Overview
 
-Index will start at a preset Directory - in this case ~/Desktop/Projects. It creates objects from all of your directories and saves it as a json file in ~/.project-finder/projects.json.
+Project Finder solves the common problem of managing multiple project directories scattered across your filesystem. Instead of navigating through nested folders or remembering exact project locations, you can quickly search and open projects using fuzzy matching.
 
-Find takes a query term and uses a fuzzy finder to compare the query to each of your directories, and returns them in an interactive terminal session to cycle and select.
-They are organized by time last modified, and the time is shown to the user. 
-
-On Select it executes VsCode cli to open or add the project to a new or current VSCode session.
+The tool works by indexing directories in your chosen location (Desktop, Documents, or Downloads) and storing project metadata in a JSON file. When searching, it uses fuzzy matching to find projects and presents them in an interactive terminal interface, sorted by last modified date.
 
 ## Features
 
-- **Fuzzy Search**: Quickly find projects by typing partial names.
-- **VSCode Integration**: Open projects directly in VSCode.
-- **Directory Indexing**: Indexes projects in a predefined directory for fast access.
+- **Fuzzy search**: Find projects by typing partial directory names
+- **Interactive selection**: Browse through matching projects with arrow keys  
+- **VSCode integration**: Open projects directly in VSCode
+- **Tmux support**: Navigate to project directory and run tmux-dev
+- **Fast indexing**: Pre-index directories for quick searching
+- **Smart filtering**: Excludes common directories like node_modules and venv
 
 ## Installation
 
@@ -32,7 +31,7 @@ On Select it executes VsCode cli to open or add the project to a new or current 
 
 3. **Build the CLI tool**:
    ```bash
-   go build -o project-finder
+   go build -o findit
    ```
 
 4. **Add the tool to your PATH** (optional):
@@ -42,34 +41,65 @@ On Select it executes VsCode cli to open or add the project to a new or current 
 
 ## Usage
 
-### Indexing Projects
+### Initial Setup
 
-The first thing you need to do is set the config.
-For now the CLI only accepts three directories:
-```go
-Items: []string{"Desktop", "Documents", "Downloads"}
-```
-In the future I will expand this to dynamically search through directories to add. I also want to enable the ability to add multiple directories,
-but in theory you should really only have to add one parent directory.
+1. **Configure the root directory**:
+   ```bash
+   ./findit config
+   ```
+   Choose from Desktop, Documents, or Downloads as your project root.
 
-To run the config selection:
+2. **Index your projects**:
+   ```bash
+   ./findit index
+   ```
+   This scans your configured directory and creates a searchable index.
+
+### Finding Projects
+
+**Open in VSCode** (default):
 ```bash
-findit config
+./findit find <search-query>
 ```
 
-
-To index all projects in the default directory (`~/Desktop/Projects`), run:
-
+**Open in tmux**:
 ```bash
-project-finder index
+./findit find <search-query> --tmux
 ```
 
-This command will create a `projects.json` file in the `.project-finder` directory in your home folder.
+## Commands
 
-### Finding and Opening Projects
+- `findit config` - Configure the root directory to index (Desktop, Documents, or Downloads)
+- `findit index` - Index all directories in the configured location  
+- `findit find <query>` - Search for projects matching the query and open in VSCode
+- `findit find <query> --tmux` - Search for projects and open in tmux instead of VSCode
 
-To find and open a project, use the `find` command followed by your search query:
+## Configuration
+
+The tool creates a `.project-finder` directory in your home folder containing:
+- `config.json` - Configuration settings (root directory selection)
+- `projects.json` - Indexed project data with metadata
+
+## Dependencies
+
+- [Cobra](https://github.com/spf13/cobra) - CLI framework
+- [promptui](https://github.com/manifoldco/promptui) - Interactive terminal prompts
+- [fuzzysearch](https://github.com/lithammer/fuzzysearch) - Fuzzy string matching
+
+## Requirements
+
+- Go 1.23.4+
+- VSCode (for default mode)
+- tmux and tmux-dev script (for tmux mode)
+
+## Example Workflow
 
 ```bash
-project-finder find <name-of-directory>
+# Initial setup
+./findit config          # Choose Desktop as root directory
+./findit index           # Index all projects in ~/Desktop
+
+# Daily usage  
+./findit find react      # Find projects matching "react"
+./findit find api --tmux # Find "api" projects and open in tmux
 ```

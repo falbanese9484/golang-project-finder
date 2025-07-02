@@ -1,4 +1,4 @@
-module project-finder
+module findit
 
 go 1.23.4
 

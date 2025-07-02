@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"project-finder/internal"
+	"findit/internal"
 
 	"github.com/lithammer/fuzzysearch/fuzzy"
 	"github.com/manifoldco/promptui"
@@ -107,16 +107,34 @@ var findCmd = &cobra.Command{
 		}
 
 		selectedProject := matches[index]
-		fmt.Printf("Opening project: %s at %s\n", selectedProject.Name, selectedProject.Path)
 
-		// Attaches the selected directory to the current VS Code window.
-		openCmd := exec.Command("code", "-a", selectedProject.Path)
-		if err := openCmd.Start(); err != nil {
-			fmt.Printf("Error opening project: %v\n", err)
+		tmuxMode, _ := cmd.Flags().GetBool("tmux")
+
+		if tmuxMode {
+			fmt.Printf("Navigating to project: %s at %s and running tmux-dev\n", selectedProject.Name, selectedProject.Path)
+
+			// Change to the project directory and run tmux-dev
+			tmuxCmd := exec.Command("bash", "-c", fmt.Sprintf("cd %s && tmux-dev", selectedProject.Path))
+			tmuxCmd.Stdout = os.Stdout
+			tmuxCmd.Stderr = os.Stderr
+			tmuxCmd.Stdin = os.Stdin
+
+			if err := tmuxCmd.Run(); err != nil {
+				fmt.Printf("Error running tmux-dev: %v\n", err)
+			}
+		} else {
+			fmt.Printf("Opening project: %s at %s\n", selectedProject.Name, selectedProject.Path)
+
+			// Attaches the selected directory to the current VS Code window.
+			openCmd := exec.Command("code", "-a", selectedProject.Path)
+			if err := openCmd.Start(); err != nil {
+				fmt.Printf("Error opening project: %v\n", err)
+			}
 		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(findCmd)
+	findCmd.Flags().BoolP("tmux", "t", false, "Navigate to directory and run tmux-dev instead of opening in VSCode")
 }

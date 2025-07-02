@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"project-finder/internal"
+	"findit/internal"
 
 	"github.com/spf13/cobra"
 )
