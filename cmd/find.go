@@ -58,9 +58,8 @@ func searchProjects(projects []Project, query string) []Project {
 // findCmd represents the find command
 var findCmd = &cobra.Command{
 	Use:   "find [query]",
-	Short: "Find and open a project",
+	Short: "Find a project (default: open new shell in directory, -c for VSCode, -t for tmux)",
 	Run: func(cmd *cobra.Command, args []string) {
-
 		// Check if the config file exists
 		err := internal.CheckConfig()
 		if err != nil {
@@ -109,6 +108,7 @@ var findCmd = &cobra.Command{
 		selectedProject := matches[index]
 
 		tmuxMode, _ := cmd.Flags().GetBool("tmux")
+		codeMode, _ := cmd.Flags().GetBool("code")
 
 		if tmuxMode {
 			fmt.Printf("Navigating to project: %s at %s and running tmux-dev\n", selectedProject.Name, selectedProject.Path)
@@ -122,7 +122,7 @@ var findCmd = &cobra.Command{
 			if err := tmuxCmd.Run(); err != nil {
 				fmt.Printf("Error running tmux-dev: %v\n", err)
 			}
-		} else {
+		} else if codeMode {
 			fmt.Printf("Opening project: %s at %s\n", selectedProject.Name, selectedProject.Path)
 
 			// Attaches the selected directory to the current VS Code window.
@@ -130,11 +130,37 @@ var findCmd = &cobra.Command{
 			if err := openCmd.Start(); err != nil {
 				fmt.Printf("Error opening project: %v\n", err)
 			}
+		} else {
+			// Default behavior: change directory in current process and spawn a new shell
+			fmt.Printf("Navigating to project: %s at %s\n", selectedProject.Name, selectedProject.Path)
+
+			// Change the working directory of this process
+			if err := os.Chdir(selectedProject.Path); err != nil {
+				fmt.Printf("Error changing directory: %v\n", err)
+				return
+			}
+
+			// Spawn a new shell in the target directory
+			shell := os.Getenv("SHELL")
+			if shell == "" {
+				shell = "/bin/bash" // fallback
+			}
+
+			shellCmd := exec.Command(shell)
+			shellCmd.Stdout = os.Stdout
+			shellCmd.Stderr = os.Stderr
+			shellCmd.Stdin = os.Stdin
+			shellCmd.Dir = selectedProject.Path
+
+			if err := shellCmd.Run(); err != nil {
+				fmt.Printf("Error starting shell: %v\n", err)
+			}
 		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(findCmd)
-	findCmd.Flags().BoolP("tmux", "t", false, "Navigate to directory and run tmux-dev instead of opening in VSCode")
+	findCmd.Flags().BoolP("tmux", "t", false, "Navigate to directory and run tmux-dev")
+	findCmd.Flags().BoolP("code", "c", false, "Open project in VSCode")
 }
