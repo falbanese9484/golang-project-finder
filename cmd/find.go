@@ -58,7 +58,7 @@ func searchProjects(projects []Project, query string) []Project {
 // findCmd represents the find command
 var findCmd = &cobra.Command{
 	Use:   "find [query]",
-	Short: "Find a project (default: open new shell in directory, -c for VSCode, -t for tmux)",
+	Short: "Find a project (default: open new shell in directory, -c for VSCode, -t for tmux, -w for workspace)",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Check if the config file exists
 		err := internal.CheckConfig()
@@ -66,6 +66,53 @@ var findCmd = &cobra.Command{
 			fmt.Println("Config file not found. Please run 'findit config' to set the config")
 			return
 		}
+
+		workspaceQuery, _ := cmd.Flags().GetString("workspace")
+
+		// Handle workspace search
+		if workspaceQuery != "" {
+			workspaces, err := ReadWorkspaces()
+			if err != nil {
+				fmt.Printf("Error reading workspaces: %v\n", err)
+				fmt.Println("Try running 'findit workspace index' first")
+				return
+			}
+
+			matches := SearchWorkspaces(workspaces, workspaceQuery)
+			if len(matches) == 0 {
+				fmt.Println("No workspaces found")
+				return
+			}
+
+			SortWorkspaces(matches)
+
+			var workspaceNames []string
+			for _, w := range matches {
+				workspaceNames = append(workspaceNames, fmt.Sprintf("%s -> Last_Modified: %s", w.Name, w.Modified.Format("2006-01-02 15:04:05")))
+			}
+
+			selectPrompt := promptui.Select{
+				Label: "Select a workspace",
+				Items: workspaceNames,
+			}
+
+			index, _, err := selectPrompt.Run()
+			if err != nil {
+				fmt.Printf("Prompt failed: %v\n", err)
+				return
+			}
+
+			selectedWorkspace := matches[index]
+			fmt.Printf("Opening workspace: %s\n", selectedWorkspace.Name)
+
+			openCmd := exec.Command("code", selectedWorkspace.Path)
+			if err := openCmd.Start(); err != nil {
+				fmt.Printf("Error opening workspace: %v\n", err)
+			}
+			return
+		}
+
+		// Handle project search (existing logic)
 		if len(args) < 1 {
 			fmt.Println("Please provide a search query")
 			return
@@ -163,4 +210,5 @@ func init() {
 	rootCmd.AddCommand(findCmd)
 	findCmd.Flags().BoolP("tmux", "t", false, "Navigate to directory and run tmux-dev")
 	findCmd.Flags().BoolP("code", "c", false, "Open project in VSCode")
+	findCmd.Flags().StringP("workspace", "w", "", "Search for VS Code workspace instead of project")
 }

@@ -69,7 +69,7 @@ func writeWorkspacesToFile(workspaces []Workspace, filename string) error {
 	return nil
 }
 
-func readWorkspaces() ([]Workspace, error) {
+func ReadWorkspaces() ([]Workspace, error) {
 	rootDir, err := os.UserHomeDir()
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func readWorkspaces() ([]Workspace, error) {
 	return workspaces, nil
 }
 
-func searchWorkspaces(workspaces []Workspace, query string) []Workspace {
+func SearchWorkspaces(workspaces []Workspace, query string) []Workspace {
 	var matches []Workspace
 
 	for _, workspace := range workspaces {
@@ -101,7 +101,7 @@ func searchWorkspaces(workspaces []Workspace, query string) []Workspace {
 	return matches
 }
 
-func sortWorkspaces(workspaces []Workspace) {
+func SortWorkspaces(workspaces []Workspace) {
 	sort.Slice(workspaces, func(i, j int) bool {
 		return workspaces[i].Modified.After(workspaces[j].Modified)
 	})
@@ -180,20 +180,20 @@ var workspaceFindCmd = &cobra.Command{
 		}
 
 		query := args[0]
-		workspaces, err := readWorkspaces()
+		workspaces, err := ReadWorkspaces()
 		if err != nil {
 			fmt.Printf("Error reading workspaces: %v\n", err)
 			fmt.Println("Try running 'findit workspace index' first")
 			return
 		}
 
-		matches := searchWorkspaces(workspaces, query)
+		matches := SearchWorkspaces(workspaces, query)
 		if len(matches) == 0 {
 			fmt.Println("No workspaces found")
 			return
 		}
 
-		sortWorkspaces(matches)
+		SortWorkspaces(matches)
 
 		var workspaceNames []string
 		for _, w := range matches {
