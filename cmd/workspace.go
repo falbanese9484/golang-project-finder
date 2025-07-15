@@ -195,9 +195,9 @@ var workspaceInitCmd = &cobra.Command{
 			return
 		}
 
-		workspaceContent := map[string]interface{}{
+		workspaceContent := map[string]any{
 			"folders":  []map[string]string{},
-			"settings": map[string]interface{}{},
+			"settings": map[string]any{},
 		}
 
 		file, err := os.Create(workspaceFile)

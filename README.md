@@ -13,6 +13,7 @@ The tool works by indexing directories in your chosen location (Desktop, Documen
 - **Fuzzy search**: Find projects by typing partial directory names
 - **Interactive selection**: Browse through matching projects with arrow keys  
 - **VSCode integration**: Open projects directly in VSCode
+- **Workspace management**: Create and manage VS Code workspace files
 - **Tmux support**: Navigate to project directory and run tmux-dev
 - **Fast indexing**: Pre-index directories for quick searching
 - **Smart filtering**: Excludes common directories like node_modules and venv
@@ -67,18 +68,44 @@ The tool works by indexing directories in your chosen location (Desktop, Documen
 ./findit find <search-query> --tmux
 ```
 
+### Managing Workspaces
+
+**Create a new workspace**:
+```bash
+./findit workspace init <workspace-name>
+```
+
+**Index existing workspaces**:
+```bash
+./findit workspace index
+```
+
+**Find and open a workspace**:
+```bash
+./findit workspace find <search-query>
+```
+
 ## Commands
 
+### Project Management
 - `findit config` - Configure the root directory to index (Desktop, Documents, or Downloads)
 - `findit index` - Index all directories in the configured location  
 - `findit find <query>` - Search for projects matching the query and open in VSCode
 - `findit find <query> --tmux` - Search for projects and open in tmux instead of VSCode
+
+### Workspace Management
+- `findit workspace init <name>` - Create a new VS Code workspace file
+- `findit workspace index` - Index VS Code workspaces in ~/Desktop/workspaces
+- `findit workspace find <query>` - Find and open a VS Code workspace
 
 ## Configuration
 
 The tool creates a `.project-finder` directory in your home folder containing:
 - `config.json` - Configuration settings (root directory selection)
 - `projects.json` - Indexed project data with metadata
+- `workspaces.json` - Indexed VS Code workspace files
+
+Workspaces are stored in `~/Desktop/workspaces/` as `.code-workspace` files.
 
 ## Dependencies
 
@@ -102,4 +129,9 @@ The tool creates a `.project-finder` directory in your home folder containing:
 # Daily usage  
 ./findit find react      # Find projects matching "react"
 ./findit find api --tmux # Find "api" projects and open in tmux
+
+# Workspace management
+./findit workspace init my-project    # Create new workspace
+./findit workspace index              # Index existing workspaces
+./findit workspace find my-project    # Find and open workspace
 ```

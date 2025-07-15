@@ -7,6 +7,18 @@
 - **Single test**: `go test -run TestFunctionName ./package`
 - **Vet**: `go vet ./...`
 
+## Available Commands
+### Project Management
+- `findit config` - Configure root directory (Desktop/Documents/Downloads)
+- `findit index` - Index directories in configured location
+- `findit find <query>` - Find and open projects in VSCode
+- `findit find <query> --tmux` - Find and open projects in tmux
+
+### Workspace Management
+- `findit workspace init <name>` - Create new VS Code workspace file
+- `findit workspace index` - Index existing workspace files in ~/Desktop/workspaces
+- `findit workspace find <query>` - Find and open VS Code workspace
+
 ## Code Style Guidelines
 - **Module**: `findit` (as defined in go.mod)
 - **Go version**: 1.23.4+
