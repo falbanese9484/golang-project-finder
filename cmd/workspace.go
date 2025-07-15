@@ -163,6 +163,62 @@ var workspaceIndexCmd = &cobra.Command{
 	},
 }
 
+// workspaceInitCmd represents the workspace init command
+var workspaceInitCmd = &cobra.Command{
+	Use:   "init [name]",
+	Short: "Initialize a new VS Code workspace",
+	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) < 1 {
+			fmt.Println("Please provide a workspace name")
+			return
+		}
+
+		workspaceName := args[0]
+		rootDir, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Println("Error getting home directory:", err)
+			return
+		}
+
+		workspacesPath := filepath.Join(rootDir, "Desktop", "workspaces")
+		if _, err := os.Stat(workspacesPath); os.IsNotExist(err) {
+			err = os.MkdirAll(workspacesPath, 0755)
+			if err != nil {
+				fmt.Printf("Error creating workspaces directory: %v\n", err)
+				return
+			}
+		}
+
+		workspaceFile := filepath.Join(workspacesPath, workspaceName+".code-workspace")
+		if _, err := os.Stat(workspaceFile); err == nil {
+			fmt.Printf("Workspace '%s' already exists\n", workspaceName)
+			return
+		}
+
+		workspaceContent := map[string]interface{}{
+			"folders":  []map[string]string{},
+			"settings": map[string]interface{}{},
+		}
+
+		file, err := os.Create(workspaceFile)
+		if err != nil {
+			fmt.Printf("Error creating workspace file: %v\n", err)
+			return
+		}
+		defer file.Close()
+
+		encoder := json.NewEncoder(file)
+		encoder.SetIndent("", "  ")
+		err = encoder.Encode(workspaceContent)
+		if err != nil {
+			fmt.Printf("Error writing workspace content: %v\n", err)
+			return
+		}
+
+		fmt.Printf("Created workspace: %s\n", workspaceFile)
+	},
+}
+
 // workspaceFindCmd represents the workspace find command
 var workspaceFindCmd = &cobra.Command{
 	Use:   "find [query]",
@@ -224,5 +280,6 @@ var workspaceFindCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(workspaceCmd)
 	workspaceCmd.AddCommand(workspaceIndexCmd)
+	workspaceCmd.AddCommand(workspaceInitCmd)
 	workspaceCmd.AddCommand(workspaceFindCmd)
 }
